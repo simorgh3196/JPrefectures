@@ -9,101 +9,46 @@
 import Foundation
 
 public struct Prefecture {
-    public let nameRoman: String
+    public let name: String
     public let nameJapanese: String
-    public let prefectureId: Int
+    public let code: Int
     public let area: String
 
-    public init?(name: String) {
-
-    }
-
-    public init?(prefectureId: Int) {
-
-    }
-
-    public init?() {
-
-    }
-
-    public init(nameRoman: String, nameJapanese: String, prefectureId: Int, area: String) {
-        self.nameRoman = nameRoman
+    internal init(name: String, nameJapanese: String, code: Int, area: String) {
+        self.name = name
         self.nameJapanese = nameJapanese
-        self.prefectureId = prefectureId
+        self.code = code
         self.area = area
     }
 }
 
 
+//MARK: - Initializers
+
 extension Prefecture {
-    
-    private static func mapDictionaryToPrefecture(dic: [String: String]) -> Prefecture {
-        let nameRoman = dic["name"]!
-        let nameJapanese = dic["name_ja"]!
-        let prefectureId = Int(dic["pref_id"]!)!
-        let area = dic["area"]!
-        
-        return Prefecture(
-            nameRoman: nameRoman,
-            nameJapanese: nameJapanese,
-            prefectureId: prefectureId,
-            area: area
-        )
-    }
-    
-    private static func prefectureIdIsValid(prefectureId: Int) -> Bool {
-        guard (1..<48).contains(prefectureId) else { return false }
-        return true
-    }
-    
-    public static func prefectureForId(prefectureId: String) -> Prefecture? {
-        let prefectureId = Int(prefectureId) ?? -1
-        guard prefectureIdIsValid(prefectureId) else { return nil }
 
-        let zeroBasedIndex = prefectureId - 1
-
-        return mapDictionaryToPrefecture(prefectures[zeroBasedIndex])
-    }
-    
-    public static func prefectureForId(prefectureId: Int) -> Prefecture? {
-        return prefectureForId(prefectureId.description)
-    }
-    
-    public static var regionNames: [String] {
-        return regions.flatMap { $0.keys.first }
-    }
-    
-    public static func prefecturesForIds(prefectureIds: [Int]) -> [Prefecture]? {
-        var result = [Prefecture]()
-        for prefectureId in prefectureIds {
-            guard prefectureIdIsValid(prefectureId) else { return nil }
-            let zeroBasedId = prefectureId - 1
-            result += [mapDictionaryToPrefecture(prefectures[zeroBasedId])]
+    public init?(name: String) {
+        if let prefecture = JPrefecture.prefectureForName(name) {
+            self = prefecture
+            return
         }
-        
-        return result.count > 0 ? result : nil
+
+        return nil
     }
-    
-    public static func prefecturesForIdsByRegion(prefectureIds: [Int]) -> [String: [Prefecture]]? {
-        guard let prefectures = prefecturesForIds(prefectureIds) else { return nil }
-        
-        var groupedPrefectures = [String: [Prefecture]]()
-        for area in Prefecture.regionNames {
-            let prefs = prefectures.filter { $0.area == area }
-            guard prefs.count > 0 else { continue }
-            groupedPrefectures[area] = prefs
+
+    public init?(code: Int) {
+        if let prefecture = JPrefecture.prefectureForPrefectureCode(code) {
+            self = prefecture
+            return
         }
-        
-        return groupedPrefectures
+
+        return nil
     }
 
-    public static func prefectureIdForName(prefectureName: String) -> Int? {
-        let prefectureName = prefectureName.lowercaseString
-
-        for prefecture in prefectures {
-            if prefecture["name"]?.lowercaseString == prefectureName {
-                return Int(prefecture["pref_id"]!)!
-            }
+    public init?(nameJapanese: String) {
+        if let prefecture = JPrefecture.prefectureForPrefectureNameJapanese(nameJapanese) {
+            self = prefecture
+            return
         }
 
         return nil
@@ -111,9 +56,91 @@ extension Prefecture {
 }
 
 
+// MARK: - General Prefecture info lookup class
+
+public class JPrefecture {
+
+    public static var areaNames: [String] {
+        return area.flatMap { $0.keys.first }
+    }
+
+    internal static func prefectureForPrefectureCode(prefectureCode: Int) -> Prefecture? {
+        guard prefectureCodeIsValid(prefectureCode) else { return nil }
+
+        return mapDictionaryToPrefecture(prefectures[(prefectureCode - 1)])
+    }
+
+    internal static func prefectureForName(prefectureName: String) -> Prefecture? {
+        return prefectureMatchingValueForKey("name", target: prefectureName)
+    }
+
+    internal static func prefectureForPrefectureNameJapanese(prefectureNameJapanese: String) -> Prefecture? {
+        return prefectureMatchingValueForKey("name_ja", target: prefectureNameJapanese)
+    }
+
+    public static func prefecturesForIds(prefectureCodes: [Int]) -> [Prefecture]? {
+        var result = [Prefecture]()
+        for prefectureCode in prefectureCodes {
+            guard prefectureCodeIsValid(prefectureCode) else { return nil }
+            let zeroBasedId = prefectureCode - 1
+            result += [mapDictionaryToPrefecture(prefectures[zeroBasedId])]
+        }
+        
+        return result.count > 0 ? result : nil
+    }
+    
+    public static func prefecturesForIdsByArea(prefectureCodes: [Int]) -> [String: [Prefecture]]? {
+        guard let prefectures = prefecturesForIds(prefectureCodes) else { return nil }
+        
+        var groupedPrefectures = [String: [Prefecture]]()
+        for area in areaNames {
+            let prefs = prefectures.filter { $0.area == area }
+            guard prefs.count > 0 else { continue }
+            groupedPrefectures[area] = prefs
+        }
+        
+        return groupedPrefectures
+    }
+}
+
+
+// MARK: - Dictionary Lookup
+
+extension JPrefecture {
+
+    internal static func prefectureMatchingValueForKey(key: String, target: String) -> Prefecture? {
+        let target = target.lowercaseString
+        for prefecture in prefectures where prefecture[key]?.lowercaseString == target {
+            return mapDictionaryToPrefecture(prefecture)
+        }
+
+        return nil
+    }
+
+    internal static func mapDictionaryToPrefecture(dic: [String: String]) -> Prefecture {
+        let name = dic["name"]!
+        let nameJapanese = dic["name_ja"]!
+        let prefectureCode = Int(dic["pref_id"]!)!
+        let area = dic["area"]!
+
+        return Prefecture(
+            name: name,
+            nameJapanese: nameJapanese,
+            code: prefectureCode,
+            area: area
+        )
+    }
+
+    internal static func prefectureCodeIsValid(prefectureCode: Int) -> Bool {
+        guard (1..<48).contains(prefectureCode) else { return false }
+        return true
+    }
+}
+
+
 // MARK: - Private Data Backing Store
 
-private let regions = [
+private let area = [
     ["北海道": ["Hokkaido"]],
     ["東北": ["Akita", "Fukushima", "Aomori", "Miyagi", "Yamagata", "Iwate"]],
     ["関東": ["Tokyo", "Chiba", "Tochigi", "Gunma", "Ibaraki", "Saitama", "Kanagawa"]],
