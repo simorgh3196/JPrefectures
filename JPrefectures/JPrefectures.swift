@@ -1,0 +1,175 @@
+//
+//  Prefectures.swift
+//  Prefectures
+//
+//  Created by Nicholas Maccharoli on 4/3/16.
+//  Copyright © 2016 Nicholas Maccharoli. All rights reserved.
+//
+
+import Foundation
+
+public struct Prefecture {
+    public let nameRoman: String
+    public let nameJapanese: String
+    public let prefectureId: Int
+    public let area: String
+
+    public init?(name: String) {
+
+    }
+
+    public init?(prefectureId: Int) {
+
+    }
+
+    public init?() {
+
+    }
+
+    public init(nameRoman: String, nameJapanese: String, prefectureId: Int, area: String) {
+        self.nameRoman = nameRoman
+        self.nameJapanese = nameJapanese
+        self.prefectureId = prefectureId
+        self.area = area
+    }
+}
+
+
+extension Prefecture {
+    
+    private static func mapDictionaryToPrefecture(dic: [String: String]) -> Prefecture {
+        let nameRoman = dic["name"]!
+        let nameJapanese = dic["name_ja"]!
+        let prefectureId = Int(dic["pref_id"]!)!
+        let area = dic["area"]!
+        
+        return Prefecture(
+            nameRoman: nameRoman,
+            nameJapanese: nameJapanese,
+            prefectureId: prefectureId,
+            area: area
+        )
+    }
+    
+    private static func prefectureIdIsValid(prefectureId: Int) -> Bool {
+        guard (1..<48).contains(prefectureId) else { return false }
+        return true
+    }
+    
+    public static func prefectureForId(prefectureId: String) -> Prefecture? {
+        let prefectureId = Int(prefectureId) ?? -1
+        guard prefectureIdIsValid(prefectureId) else { return nil }
+
+        let zeroBasedIndex = prefectureId - 1
+
+        return mapDictionaryToPrefecture(prefectures[zeroBasedIndex])
+    }
+    
+    public static func prefectureForId(prefectureId: Int) -> Prefecture? {
+        return prefectureForId(prefectureId.description)
+    }
+    
+    public static var regionNames: [String] {
+        return regions.flatMap { $0.keys.first }
+    }
+    
+    public static func prefecturesForIds(prefectureIds: [Int]) -> [Prefecture]? {
+        var result = [Prefecture]()
+        for prefectureId in prefectureIds {
+            guard prefectureIdIsValid(prefectureId) else { return nil }
+            let zeroBasedId = prefectureId - 1
+            result += [mapDictionaryToPrefecture(prefectures[zeroBasedId])]
+        }
+        
+        return result.count > 0 ? result : nil
+    }
+    
+    public static func prefecturesForIdsByRegion(prefectureIds: [Int]) -> [String: [Prefecture]]? {
+        guard let prefectures = prefecturesForIds(prefectureIds) else { return nil }
+        
+        var groupedPrefectures = [String: [Prefecture]]()
+        for area in Prefecture.regionNames {
+            let prefs = prefectures.filter { $0.area == area }
+            guard prefs.count > 0 else { continue }
+            groupedPrefectures[area] = prefs
+        }
+        
+        return groupedPrefectures
+    }
+
+    public static func prefectureIdForName(prefectureName: String) -> Int? {
+        let prefectureName = prefectureName.lowercaseString
+
+        for prefecture in prefectures {
+            if prefecture["name"]?.lowercaseString == prefectureName {
+                return Int(prefecture["pref_id"]!)!
+            }
+        }
+
+        return nil
+    }
+}
+
+
+// MARK: - Private Data Backing Store
+
+private let regions = [
+    ["北海道": ["Hokkaido"]],
+    ["東北": ["Akita", "Fukushima", "Aomori", "Miyagi", "Yamagata", "Iwate"]],
+    ["関東": ["Tokyo", "Chiba", "Tochigi", "Gunma", "Ibaraki", "Saitama", "Kanagawa"]],
+    ["中部": ["Aichi", "Ishikawa", "Toyama", "Fukui", "Nagano", "Yamanashi", "Shizuoka", "Niigata", "Gifu"]],
+    ["関西": ["Kyoto", "Shiga", "Mie", "Nara", "Wakayama", "Hyogo", "Osaka"]],
+    ["中国": ["Shimane", "Hiroshima", "Tottori", "Okayama", "Yamaguchi"]],
+    ["四国": ["Kochi", "Kagawa", "Tokushima", "Ehime"]],
+    ["九州": ["Saga", "Kagoshima", "Okinawa", "Miyazaki", "Nagasaki", "Oita", "Kumamoto", "Fukuoka"]],
+]
+
+private let prefectures = [
+    ["name": "Hokkaido", "name_ja": "北海道", "pref_id": "1", "area": "北海道"],
+    ["name": "Aomori", "name_ja": "青森県", "pref_id": "2", "area": "東北"],
+    ["name": "Iwate", "name_ja": "岩手県", "pref_id": "3", "area": "東北"],
+    ["name": "Miyagi", "name_ja": "宮城県", "pref_id": "4", "area": "東北"],
+    ["name": "Akita", "name_ja": "秋田県", "pref_id": "5", "area": "東北"],
+    ["name": "Yamagata", "name_ja": "山形県", "pref_id": "6", "area": "東北"],
+    ["name": "Fukushima", "name_ja": "福島県", "pref_id": "7", "area": "東北"],
+    ["name": "Ibaraki", "name_ja": "茨城県", "pref_id": "8", "area": "関東"],
+    ["name": "Tochigi", "name_ja": "栃木県", "pref_id": "9", "area": "関東"],
+    ["name": "Gunma", "name_ja": "群馬県", "pref_id": "10", "area": "関東"],
+    ["name": "Saitama", "name_ja": "埼玉県", "pref_id": "11", "area": "関東"],
+    ["name": "Chiba", "name_ja": "千葉県", "pref_id": "12", "area": "関東"],
+    ["name": "Tokyo", "name_ja": "東京都", "pref_id": "13", "area": "関東"],
+    ["name": "Kanagawa", "name_ja": "神奈川県", "pref_id": "14", "area": "関東"],
+    ["name": "Niigata", "name_ja": "新潟県", "pref_id": "15", "area": "中部"],
+    ["name": "Toyama", "name_ja": "富山県", "pref_id": "16", "area": "中部"],
+    ["name": "Ishikawa", "name_ja": "石川県", "pref_id": "17", "area": "中部"],
+    ["name": "Fukui", "name_ja": "福井県", "pref_id": "18", "area": "中部"],
+    ["name": "Yamanashi", "name_ja": "山梨県", "pref_id": "19", "area": "中部"],
+    ["name": "Nagano", "name_ja": "長野県", "pref_id": "20", "area": "中部"],
+    ["name": "Gifu", "name_ja": "岐阜県", "pref_id": "21", "area": "中部"],
+    ["name": "Shizuoka", "name_ja": "静岡県", "pref_id": "22", "area": "中部"],
+    ["name": "Aichi", "name_ja": "愛知県", "pref_id": "23", "area": "中部"],
+    ["name": "Mie", "name_ja": "三重県", "pref_id": "24", "area": "関西"],
+    ["name": "Shiga", "name_ja": "滋賀県", "pref_id": "25", "area": "関西"],
+    ["name": "Kyoto", "name_ja": "京都府", "pref_id": "26", "area": "関西"],
+    ["name": "Osaka", "name_ja": "大阪府", "pref_id": "27", "area": "関西"],
+    ["name": "Hyogo", "name_ja": "兵庫県", "pref_id": "28", "area": "関西"],
+    ["name": "Nara", "name_ja": "奈良県", "pref_id": "29", "area": "関西"],
+    ["name": "Wakayama", "name_ja": "和歌山県", "pref_id": "30", "area": "関西"],
+    ["name": "Tottori", "name_ja": "鳥取県", "pref_id": "31", "area": "中国"],
+    ["name": "Shimane", "name_ja": "島根県", "pref_id": "32", "area": "中国"],
+    ["name": "Okayama", "name_ja": "岡山県", "pref_id": "33", "area": "中国"],
+    ["name": "Hiroshima", "name_ja": "広島県", "pref_id": "34", "area": "中国"],
+    ["name": "Yamaguchi", "name_ja": "山口県", "pref_id": "35", "area": "中国"],
+    ["name": "Tokushima", "name_ja": "徳島県", "pref_id": "36", "area": "四国"],
+    ["name": "Kagawa", "name_ja": "香川県", "pref_id": "37", "area": "四国"],
+    ["name": "Ehime", "name_ja": "愛媛県", "pref_id": "38", "area": "四国"],
+    ["name": "Kochi", "name_ja": "高知県", "pref_id": "39", "area": "四国"],
+    ["name": "Fukuoka", "name_ja": "福岡県", "pref_id": "40", "area": "九州"],
+    ["name": "Saga", "name_ja": "佐賀県", "pref_id": "41", "area": "九州"],
+    ["name": "Nagasaki", "name_ja": "長崎県", "pref_id": "42", "area": "九州"],
+    ["name": "Kumamoto", "name_ja": "熊本県", "pref_id": "43", "area": "九州"],
+    ["name": "Oita", "name_ja": "大分県", "pref_id": "44", "area": "九州"],
+    ["name": "Miyazaki", "name_ja": "宮崎県", "pref_id": "45", "area": "九州"],
+    ["name": "Kagoshima", "name_ja": "鹿児島県", "pref_id": "46", "area": "九州"],
+    ["name": "Okinawa", "name_ja": "沖縄県", "pref_id": "47", "area": "九州"],
+]
