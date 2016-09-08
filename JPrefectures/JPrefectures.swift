@@ -58,27 +58,27 @@ extension Prefecture {
 
 // MARK: - General Prefecture info lookup class
 
-public class JPrefecture {
+open class JPrefecture {
 
-    public static var areaNames: [String] {
+    open static var areaNames: [String] {
         return area.flatMap { $0.keys.first }
     }
 
-    internal static func prefectureForPrefectureCode(prefectureCode: Int) -> Prefecture? {
+    internal static func prefectureForPrefectureCode(_ prefectureCode: Int) -> Prefecture? {
         guard prefectureCodeIsValid(prefectureCode) else { return nil }
 
         return mapDictionaryToPrefecture(prefectures[(prefectureCode - 1)])
     }
 
-    internal static func prefectureForName(prefectureName: String) -> Prefecture? {
+    internal static func prefectureForName(_ prefectureName: String) -> Prefecture? {
         return prefectureMatchingValueForKey("name", target: prefectureName)
     }
 
-    internal static func prefectureForPrefectureNameJapanese(prefectureNameJapanese: String) -> Prefecture? {
+    internal static func prefectureForPrefectureNameJapanese(_ prefectureNameJapanese: String) -> Prefecture? {
         return prefectureMatchingValueForKey("name_ja", target: prefectureNameJapanese)
     }
 
-    public static func prefecturesForIds(prefectureCodes: [Int]) -> [Prefecture]? {
+    open static func prefecturesForIds(_ prefectureCodes: [Int]) -> [Prefecture]? {
         var result = [Prefecture]()
         for prefectureCode in prefectureCodes {
             guard prefectureCodeIsValid(prefectureCode) else { return nil }
@@ -89,7 +89,7 @@ public class JPrefecture {
         return result.count > 0 ? result : nil
     }
     
-    public static func prefecturesForIdsByArea(prefectureCodes: [Int]) -> [String: [Prefecture]]? {
+    open static func prefecturesForIdsByArea(_ prefectureCodes: [Int]) -> [String: [Prefecture]]? {
         guard let prefectures = prefecturesForIds(prefectureCodes) else { return nil }
         
         var groupedPrefectures = [String: [Prefecture]]()
@@ -108,16 +108,16 @@ public class JPrefecture {
 
 extension JPrefecture {
 
-    internal static func prefectureMatchingValueForKey(key: String, target: String) -> Prefecture? {
-        let target = target.lowercaseString
-        for prefecture in prefectures where prefecture[key]?.lowercaseString == target {
+    internal static func prefectureMatchingValueForKey(_ key: String, target: String) -> Prefecture? {
+        let target = target.lowercased()
+        for prefecture in prefectures where prefecture[key]?.lowercased() == target {
             return mapDictionaryToPrefecture(prefecture)
         }
 
         return nil
     }
 
-    internal static func mapDictionaryToPrefecture(dic: [String: String]) -> Prefecture {
+    internal static func mapDictionaryToPrefecture(_ dic: [String: String]) -> Prefecture {
         let name = dic["name"]!
         let nameJapanese = dic["name_ja"]!
         let prefectureCode = Int(dic["pref_id"]!)!
@@ -131,7 +131,7 @@ extension JPrefecture {
         )
     }
 
-    internal static func prefectureCodeIsValid(prefectureCode: Int) -> Bool {
+    internal static func prefectureCodeIsValid(_ prefectureCode: Int) -> Bool {
         guard (1..<48).contains(prefectureCode) else { return false }
         return true
     }
