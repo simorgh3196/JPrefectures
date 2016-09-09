@@ -1,7 +1,7 @@
 language: objective-c
-osx_image: xcode7.3
+osx_image: xcode8
 xcode_project: JPrefectures.xcodeproj # path to your xcodeproj folder
 xcode_scheme: JPrefectures
 
 script:
-- xctool -project JPrefectures.xcodeproj -sdk iphonesimulator9.3 --scheme JPrefectures build ONLY_ACTIVE_ARCH=YES
+- xctool -project JPrefectures.xcodeproj -sdk iphonesimulator10.0 --scheme JPrefectures build ONLY_ACTIVE_ARCH=YES
