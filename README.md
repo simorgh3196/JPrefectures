@@ -1,5 +1,6 @@
 # JPrefectures 
 #### *Japanese Prefecture Info on the fly*
+![](https://travis-ci.org/Nirma/JPrefectures.svg?branch=master)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 
 
@@ -40,6 +41,10 @@ JPrefectures.regionNames // ["北海道", "東北", "関東", "中部", "関西"
 ```swift
 JPrefecture.allPrefecturesByRegion()
 ```
+# Swift Version Support
+Currently there is a `swift-2.3` branch for Swift 2.3 support and a `swift-3.0` branch for Swift 3.0 support. 
+At the time of this writing `master` is currently supporting only Swift 2.2 but if you need Swift 2.3 or Swift 3.0
+support ahead of official release feel free to checkout the `swift-2.3` and `swift-3.0` branches instead of master. 
 
 # Contributing 
 Contributions are more than welcome!
