@@ -40,6 +40,14 @@ class JPrefecturesTests: XCTestCase {
         XCTAssert(returnedNames == expectedPrefectureNames, "List of Prefectures for IDs fails to return proper list.")
     }
 
+    func testAllPrefectures() {
+        let prefectures = JPrefecture.allPrefectures()
+
+        if prefectures.count != 47 {
+            XCTFail("List of all Prefectures fails to return all Prefecutres.")
+        }
+    }
+
     //Regions
     func testRegions() {
         let expectedRegions = ["北海道","関東"]

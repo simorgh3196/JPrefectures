@@ -101,6 +101,10 @@ public class JPrefecture {
         
         return groupedPrefectures
     }
+
+    public static func allPrefectures() -> [Prefecture] {
+        return prefectures.map { mapDictionaryToPrefecture($0) }
+    }
 }
 
 
